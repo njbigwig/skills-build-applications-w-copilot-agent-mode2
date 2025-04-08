@@ -10,7 +10,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         # Connect to MongoDB
-        client = MongoClient(settings.DATABASES['default']['HOST'], settings.DATABASES['default']['PORT'])
+        if settings.DATABASES['default']['ENGINE'] == 'djongo':
+            client = MongoClient(settings.DATABASES['default']['HOST'], settings.DATABASES['default']['PORT'])
+        else:
+            self.stdout.write(self.style.ERROR('This command is only compatible with MongoDB (djongo).'))
+            return
         db = client[settings.DATABASES['default']['NAME']]
 
         # Drop existing collections
@@ -39,7 +43,8 @@ class Command(BaseCommand):
 
         # Assign users to teams
         for team in teams:
-            team.members.set(users)
+            team.members = users
+            team.save()
 
         # Create activities
         activities = [

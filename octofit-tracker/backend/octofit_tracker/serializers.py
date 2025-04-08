@@ -1,13 +1,17 @@
 from rest_framework import serializers
 from .models import User, Team, Activity, Leaderboard, Workout
 from bson import ObjectId
+import bson.errors
 
 class ObjectIdField(serializers.Field):
     def to_representation(self, value):
         return str(value)
 
     def to_internal_value(self, data):
-        return ObjectId(data)
+        try:
+            return ObjectId(data)
+        except bson.errors.InvalidId:
+            raise serializers.ValidationError("Invalid ObjectId format.")
 
 class UserSerializer(serializers.ModelSerializer):
     _id = ObjectIdField()
